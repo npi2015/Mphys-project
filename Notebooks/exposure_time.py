@@ -76,9 +76,10 @@ def exposure_time(m_star, telescope, filter):
     # quantum efficiency of camera
     QE = QE_peak * rel_output
 
-    # determining the number of photons incident on the camera
+    # determining the number of photons registered by the camera
     f_photon = f_star / ave_E  # photon flux
-    n_photons = area * f_photon * T * QE # number of photons that enter the camera
+    incident_photons = area * f_photon * T # number of photons that enter the camera
+    n_photons = incident_photons * QE # taking quantum efficiency of camera into account
 
     # calculating the greatest probability of a photon reaching a specific pixel using a gaussian distribution for incident photons
     p1d = integrate.quad(gauss, -1 / 2, 1 / 2, args = (std,))  # integrating the gaussian function
