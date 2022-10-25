@@ -7,6 +7,7 @@ c = 2.998*10**8 # speed of light in a vacuum
 M_sun = 4.74 # absolute magnitude of the Sun
 L_sun = 3.828*10**26 # luminosity of the Sun
 au = 1.496*10**11 # astronomical unit
+QE_peak = 0.6 # peak quantum efficiency of camera
 pixel_size = 3.8*10**-6 # pixel size of camera
 max_photons = 32000 # maximum number of photons allowed to land on a pixel
 f_sun = L_sun/(4*np.pi*au**2) # flux of the Sun
@@ -29,41 +30,29 @@ def exposure_time(m_star, telescope, filter):
     else:
         print("Choose one of the two available telescopes, Apo refractor or Ritchey-Chretien.")
 
-    # if statements for the type of filter, which determines the wavelength of photons incident on the camera, and the percentage of photons transmitted
+    # if statements for the type of filter, which determines the wavelength of photons incident on the camera, quantum efficieny of the camera and the percentage of photons transmitted
     if filter == 'L':
         T = 0.95
         l1 = 390 * 10 ** -9
         l2 = 700 * 10 ** -9
+        rel_output = 0.81
     elif filter == 'R':
         T = 0.96
         l1 = 590 * 10 ** -9
         l2 = 700 * 10 ** -9
+        rel_output = 0.76
     elif filter == 'G':
         T = 0.95
         l1 = 490 * 10 ** -9
         l2 = 570 * 10 ** -9
+        rel_output = 0.94
     elif filter == 'B':
         T = 0.93
         l1 = 390 * 10 ** -9
         l2 = 500 * 10 ** -9
-    elif filter == 'Halpha':
-        T = 1
-        l1 = 656.3 * 10 ** -9
-        l2 = 656.3 * 10 ** -9
-    elif filter == 'OIII':
-        T = 1
-        l1 = 500 * 10 ** -9
-        l2 = 500 * 10 ** -9
-    elif filter == 'SII':
-        T = 1
-        l1 = 672 * 10 ** -9
-        l2 = 672 * 10 ** -9
-    elif filter == 'None':
-        T = 1
-        l1 = 551 * 10 ** -9
-        l2 = 551 * 10 ** -9
+        rel_output = 0.76
     else:
-        print("Choose a filter, L, R, G, B, Halpha, OIII, SII or NO for no filter")
+        print("Choose a filter, L, R, G or B.")
 
     # determining the width of the Gaussian spread of light
     angular_resolution = (pixel_size / focal_length) * (180 / np.pi) * 3600  # angular resolution of the camera (arcseconds per pixel)
@@ -84,9 +73,12 @@ def exposure_time(m_star, telescope, filter):
     total_E = sum(E_photon)  # energy of different photon wavelengths summed up
     ave_E = total_E / 10000  # average energy of a photon
 
+    # quantum efficiency of camera
+    QE = QE_peak * rel_output
+
     # determining the number of photons incident on the camera
     f_photon = f_star / ave_E  # photon flux
-    n_photons = area * f_photon * T  # number of photons that enter the camera
+    n_photons = area * f_photon * T * QE # number of photons that enter the camera
 
     # calculating the greatest probability of a photon reaching a specific pixel using a gaussian distribution for incident photons
     p1d = integrate.quad(gauss, -1 / 2, 1 / 2, args = (std,))  # integrating the gaussian function
