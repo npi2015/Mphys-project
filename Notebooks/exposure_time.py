@@ -13,7 +13,6 @@ max_photons = 32000 # maximum number of photons allowed to land on a pixel
 f_sun = L_sun/(4*np.pi*au**2) # flux of the Sun
 m_sun = M_sun-5+5*np.log10(au/(3.086*10**16)) # apparent magnitude of the Sun
 fwhm_arcseconds = 4 # full width at half maximum of starlight incident on the camera, spread as a Gaussian
-gain = 1.2 # gain of the camera
 
 # function for gaussian distribution
 def gauss(x, std):
@@ -88,7 +87,7 @@ def exposure_time(m_star, telescope, filter):
 
     # final calculations for the exposure time for a specific apparent magnitude
     pixel_photons = n_photons * p2d  # number of photons landing on the pixel per second
-    t = max_photons / (pixel_photons * gain)  # exposure time
+    t = max_photons / pixel_photons  # exposure time
     tm = t / 60  # exposure time in minutes
     th = tm / 60  # exposure time in hours
     hours = int(th)
