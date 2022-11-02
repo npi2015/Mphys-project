@@ -2,7 +2,9 @@ from astropy import visualization as aviz
 from astropy.nddata.blocks import block_reduce
 from astropy.nddata.utils import Cutout2D
 from matplotlib import pyplot as plt
-
+from photutils import aperture_photometry
+import photutils
+import numpy as np
 
 def show_image(image,
                percl=99, percu=None, is_mask=False,
@@ -234,3 +236,48 @@ def display_cosmic_rays(cosmic_rays, images, titles=None,
     # This choice results in the images close to each other but with
     # a small gap.
     plt.subplots_adjust(wspace=0.1, hspace=0.05)
+
+def find_magnitude(array, star_xpos, star_ypos, star_circle_radius, standard_star_xpos, standard_star_ypos, standard_star_circle_radius, standard_star_mag, annulus_inner_radius, annulus_outer_radius, plotxy = True):
+    star = photutils.CircularAperture((star_xpos, star_ypos), star_circle_radius)
+
+    star_aperture = aperture_photometry(array, star)
+    star_area = star.area
+
+    # Defining sky annulus
+    ringsky = photutils.CircularAnnulus((star_xpos, star_ypos), annulus_inner_radius, annulus_outer_radius)
+
+    sky_annulus = aperture_photometry(array, ringsky)
+    sky_annulus_area = ringsky.area
+
+    # Defining the standard star
+    standard_star = photutils.CircularAperture((standard_star_xpos, standard_star_ypos), standard_star_circle_radius)
+    standard_star_aperture = aperture_photometry(array, standard_star)
+    standard_star_area = standard_star.area
+
+    # Subtracting the background from the stars
+    background_subtracted_star = (star_aperture['aperture_sum'] - sky_annulus['aperture_sum'] / (sky_annulus_area * star_area)).value
+    background_subtracted_standard_star = (standard_star_aperture['aperture_sum'] - sky_annulus['aperture_sum'] / (sky_annulus_area * standard_star_area)).value
+
+    # Calculating the magnitude of the star
+    zeropoint_mag = standard_star_mag + 2.5*np.log10(background_subtracted_standard_star)
+    mag_star = zeropoint_mag -2.5*np.log10(background_subtracted_star)
+
+    # Getting the coordinates of the middle thingie to identify the star
+    xy_coord = array.shape
+    y = xy_coord[0]
+    x = xy_coord[1]
+
+    mid_y = y/2
+    mid_x = x/2
+
+
+    # Plotting everything
+    show_image(array, cmap = 'gray')
+    ringsky.plot(ec='white')
+    star.plot(ec='red')
+    standard_star.plot(ec='red')
+    if plotxy:
+        plt.axhline(y = mid_y)
+        plt.axvline(x = mid_x)
+
+    return mag_star
