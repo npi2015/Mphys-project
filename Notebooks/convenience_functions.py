@@ -237,20 +237,20 @@ def display_cosmic_rays(cosmic_rays, images, titles=None,
     # a small gap.
     plt.subplots_adjust(wspace=0.1, hspace=0.05)
 
-def find_magnitude(array, star_xpos, star_ypos, star_circle_radius, standard_star_xpos, standard_star_ypos, standard_star_circle_radius, standard_star_mag, annulus_inner_radius, annulus_outer_radius, plotxy = True):
-    star = photutils.CircularAperture((star_xpos, star_ypos), star_circle_radius)
+def find_magnitude(array, star_xpos, star_ypos, star_circle_radius, standard_star_xpos, standard_star_ypos, standard_star_circle_radius, standard_star_mag, annulus_inner_radius, annulus_outer_radius, plotxy = True, x_offset = 0, y_offset = 0):
+    star = photutils.CircularAperture((star_xpos + x_offset, star_ypos + y_offset), star_circle_radius)
 
     star_aperture = aperture_photometry(array, star)
     star_area = star.area
 
     # Defining sky annulus
-    ringsky = photutils.CircularAnnulus((star_xpos, star_ypos), annulus_inner_radius, annulus_outer_radius)
+    ringsky = photutils.CircularAnnulus((star_xpos + x_offset, star_ypos + y_offset), annulus_inner_radius, annulus_outer_radius)
 
     sky_annulus = aperture_photometry(array, ringsky)
     sky_annulus_area = ringsky.area
 
     # Defining the standard star
-    standard_star = photutils.CircularAperture((standard_star_xpos, standard_star_ypos), standard_star_circle_radius)
+    standard_star = photutils.CircularAperture((standard_star_xpos + x_offset, standard_star_ypos + y_offset), standard_star_circle_radius)
     standard_star_aperture = aperture_photometry(array, standard_star)
     standard_star_area = standard_star.area
 
